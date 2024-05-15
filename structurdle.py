@@ -27,7 +27,7 @@ state = st.session_state
 if 'guessnum' not in state:
     state.guessnum = 0
 
-# Block for Win/Loss condition    
+# Block for Win/Loss condition - need to implement Endless as an option  
 if 'LockOut' not in state:
     state.LockOut = False
 if 'Won' not in state:
@@ -42,6 +42,7 @@ if 'outdf' not in state:
     state.outdf = pd.DataFrame({"Guess Number": [],
                                            "Tanimoto": [],
                                            "MCS": []})
+      
 # Generate the line number for grabbing the target from the current date     
 # and pull out the full line as an array to parse at our leisure
 # 0 = DBID, 1 = name, 3 = SMILES, 9 = summary
