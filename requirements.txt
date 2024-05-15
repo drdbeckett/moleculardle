@@ -1,3 +1,4 @@
 streamlit_ketcher
 pandas
 rdkit
+rdkit.Chem
