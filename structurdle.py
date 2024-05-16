@@ -6,6 +6,7 @@ import pandas as pd
 import linecache
 import random
 import base64
+import time
 import csv
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors
@@ -51,6 +52,13 @@ if 'outdf' not in state:
 st.set_page_config(layout='wide')
 #st.title("STRUCTURDLE or maybe DRUGDLE or maybe MOLECULARDLE")
 st.title("STRUCTURDLE or maybe MOLECULARDLE?")
+if not state.Endless:
+    dailytitle="Daily Puzzle: "+str(date.today().month)+"/"+str(date.today().day)+"/"+str(date.today().year)
+    st.title(dailytitle)
+if state.Endless:
+    st.title("🚨 ENDLESS MODE ACTIVATED 🚨")
+# TODO: Implement a molecular weight slider for endless mode
+
 col1, col2 = st.columns([2,1])
 #col3, col4 = st.columns([5,1])
 
@@ -59,6 +67,7 @@ col1, col2 = st.columns([2,1])
 # 0 = DBID, 1 = name, 3 = SMILES, 9 = summary
 if 'targetline' not in state:
     # There's probably a better way than hardcoding number of lines but also probably fastest
+    # read in the file
     numlines=8288
     dateseed=str(date.today().day) + str(date.today().year) + str(date.today().month)
     random.seed(dateseed)
@@ -131,6 +140,8 @@ def emojify():
 if state.NewEndless:      
     # I should read in the file initially and just parse the array again here instead of another read
     numlines=8288
+    timeseed=int(time.time()*1000)
+    random.seed(timeseed)
     targetnum=random.randrange(1,numlines)
     tline = linecache.getline('dsmiles_cleaned.csv', targetnum) 
     state.targetline = [ '"{}"'.format(x) for x in list(csv.reader([tline], delimiter=',', quotechar='"'))[0] ]
