@@ -90,8 +90,8 @@ def view_mcs(targetm,guessm):
        aid1 = match1[bond.GetBeginAtomIdx()]
        aid2 = match1[bond.GetEndAtomIdx()]
        bonds.append(guessm.GetBondBetweenAtoms(aid1,aid2).GetIdx())
-    #mcs_pil = Draw.MolToImage(guessm, highlightAtoms=match1, highlightBonds=bonds, highlightColor=rgba_color)
-    mcs_pil = Draw.MolToImage(mcs_mol)
+    mcs_pil = Draw.MolToImage(guessm, highlightAtoms=match1, highlightBonds=bonds, highlightColor=rgba_color)
+    #mcs_pil = Draw.MolToImage(mcs_mol)
 
 
     # convert the png pil to a data url of a jpeg
@@ -163,9 +163,9 @@ if state.Lost:
 # Get input structure and properties
 # TODO: style these writes
 if not state.LockOut:
-    st.write("Guess the drug!")
-    st.write("Target empirical formula:", targetformula)
     with col1:
+        st.write("Guess the drug!")
+        st.write("Target empirical formula:", targetformula)
         guess = st_ketcher()
 
 # get properties from the input guess
@@ -186,14 +186,15 @@ if guess:
 
 # The give up button
 if not state.LockOut:
-    if st.button("Give up?", type="primary"):
-        if guess:
-            state.LockOut = True
-            state.Lost = True
-            state.FinalGuessm = guessm
-            st.rerun()
-        else:
-            st.write("Oh come on you haven't even tried. Draw something and click Apply!")
+    with col2:
+        if st.button("Give up?", type="primary"):
+            if guess:
+                state.LockOut = True
+                state.Lost = True
+                state.FinalGuessm = guessm
+                st.rerun()
+            else:
+                st.write("Oh come on you haven't even tried. Draw something and click Apply!")
 
 # Similarity scoring
     if guess:
