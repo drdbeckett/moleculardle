@@ -42,7 +42,10 @@ if 'outdf' not in state:
     state.outdf = pd.DataFrame({"Guess Number": [],
                                            "Tanimoto": [],
                                            "MCS": []})
-      
+
+st.set_page_config(layout='wide')
+st.title("STRUCTURDLE or maybe DRUGDLE or maybe MOLECULARDLE")
+
 # Generate the line number for grabbing the target from the current date     
 # and pull out the full line as an array to parse at our leisure
 # 0 = DBID, 1 = name, 3 = SMILES, 9 = summary
