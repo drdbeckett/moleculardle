@@ -90,7 +90,9 @@ def view_mcs(targetm,guessm):
        aid1 = match1[bond.GetBeginAtomIdx()]
        aid2 = match1[bond.GetEndAtomIdx()]
        bonds.append(guessm.GetBondBetweenAtoms(aid1,aid2).GetIdx())
-    mcs_pil = Draw.MolToImage(guessm, highlightAtoms=match1, highlightBonds=bonds, highlightColor=rgba_color)
+    #mcs_pil = Draw.MolToImage(guessm, highlightAtoms=match1, highlightBonds=bonds, highlightColor=rgba_color)
+    mcs_pil = Draw.MolToImage(mcs_mol)
+
 
     # convert the png pil to a data url of a jpeg
     buffered = BytesIO()
