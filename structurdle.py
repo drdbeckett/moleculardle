@@ -34,6 +34,8 @@ if 'Won' not in state:
     state.Won = False
 if 'Lost' not in state:
     state.Lost = False
+if 'Endless' not in state:
+    state.Endless = False
 
 # store list of guessed SMILES strings to quickly check if a guess is unique
 if 'guesses' not in state:
@@ -45,6 +47,7 @@ if 'outdf' not in state:
 
 st.set_page_config(layout='wide')
 st.title("STRUCTURDLE or maybe DRUGDLE or maybe MOLECULARDLE")
+col1, col2 = st.beta_columns([2,1])
 
 # Generate the line number for grabbing the target from the current date     
 # and pull out the full line as an array to parse at our leisure
@@ -159,7 +162,8 @@ if state.Lost:
 if not state.LockOut:
     st.write("Guess the drug!")
     st.write("Target empirical formula:", targetformula)
-    guess = st_ketcher()
+    with col1:
+        guess = st_ketcher()
 
 # get properties from the input guess
 if guess: 
@@ -223,7 +227,8 @@ if not state.LockOut:
                                    "Tanimoto": [tan],
                                    "MCS": mcs_durl})
             state.outdf = pd.concat([state.outdf,outrow]) 
-OutTable = st.dataframe(state.outdf,
-                        column_config={"MCS": st.column_config.ImageColumn()},
-                        hide_index=True)
+with col2:
+    OutTable = st.dataframe(state.outdf,
+                            column_config={"MCS": st.column_config.ImageColumn()},
+                            hide_index=True)
 
