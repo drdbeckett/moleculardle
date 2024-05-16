@@ -189,6 +189,7 @@ if state.LockOut:
         state.LockOut = False
         state.Endless = True
         state.NewEndless = True
+        state.guessnum = 0
         # clean out the data frame table
         state.outdf = pd.DataFrame({"Guess Number": [],
                                        "Tanimoto": [],
@@ -237,6 +238,7 @@ if not state.LockOut:
         if st.button(":green-background[♾️Endless Mode♾️]", type="secondary"):
             state.Endless = True
             state.NewEndless = True
+            state.guessnum = 0
             # clean out the data frame table
             state.outdf = pd.DataFrame({"Guess Number": [],
                                            "Tanimoto": [],
