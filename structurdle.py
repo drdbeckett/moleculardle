@@ -47,7 +47,7 @@ if 'outdf' not in state:
 
 st.set_page_config(layout='wide')
 st.title("STRUCTURDLE or maybe DRUGDLE or maybe MOLECULARDLE")
-col1, col2 = st.beta_columns([2,1])
+col1, col2 = st.columns([2,1])
 
 # Generate the line number for grabbing the target from the current date     
 # and pull out the full line as an array to parse at our leisure
