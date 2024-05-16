@@ -59,7 +59,6 @@ if 'targetline' not in state:
     dateseed=str(date.today().day) + str(date.today().year) + str(date.today().month)
     random.seed(dateseed)
     targetnum=random.randrange(1,numlines)
-    #tline = linecache.getline('/Users/dbeckett/tutorials/dsmiles_cleaned.csv', targetnum) 
     tline = linecache.getline('dsmiles_cleaned.csv', targetnum) 
     state.targetline = [ '"{}"'.format(x) for x in list(csv.reader([tline], delimiter=',', quotechar='"'))[0] ]
     # debug block 
@@ -116,7 +115,6 @@ def emojify():
         emojistring = emojistring+"☠️"
     return emojistring
 
-
 #######################################################
 # Target definition and initialization
 ### debug targets
@@ -126,6 +124,12 @@ def emojify():
 
 # Get the target SMILES string from the csv file line
 # usually have to strip the double quotes
+if state.Endless:      
+    # I should read in the file initially and just parse the array again here instead of another read
+    numlines=8288
+    targetnum=random.randrange(1,numlines)
+    tline = linecache.getline('dsmiles_cleaned.csv', targetnum) 
+    state.targetline = [ '"{}"'.format(x) for x in list(csv.reader([tline], delimiter=',', quotechar='"'))[0] ]
 target=state.targetline[3].strip('\"')
 targetm = Chem.MolFromSmiles(target)
 targetHAC = rdMolDescriptors.CalcNumHeavyAtoms(targetm)
@@ -146,8 +150,9 @@ if state.Won:
     st.write(link)
     st.write(state.targetline[9].strip('\"'))
     st.image(view_mcs(state.FinalGuessm,targetm))
-    st.write("Copy the emoji string to show off to your friends, colleagues, and enemies!")
-    st.write("Structurdle ",str(date.today().month),"/",str(date.today().day),"/",str(date.today().year),": ", emojify())
+    if not state.Endless:  
+        st.write("Copy the emoji string to show off to your friends, colleagues, and enemies!")
+        st.write("Structurdle ",str(date.today().month),"/",str(date.today().day),"/",str(date.today().year),": ", emojify())
 
 if state.Lost:
     st.write("Better luck next time! Here's how close you got.")
@@ -156,8 +161,9 @@ if state.Lost:
     st.write(link)
     st.write(state.targetline[9].strip('\"'))
     st.image(view_mcs(state.FinalGuessm,targetm))
-    st.write("Copy the emoji string to demonstrate how hard you tried before tapping out!")
-    st.write("Structurdle ",str(date.today().month),"/",str(date.today().day),"/",str(date.today().year),": ", emojify())
+    if not state.Endless:  
+        st.write("Copy the emoji string to demonstrate how hard you tried before tapping out!")
+        st.write("Structurdle ",str(date.today().month),"/",str(date.today().day),"/",str(date.today().year),": ", emojify())
 ###########################
 
 # Get input structure and properties
