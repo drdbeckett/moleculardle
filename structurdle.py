@@ -46,7 +46,8 @@ if 'outdf' not in state:
                                            "MCS": []})
 
 st.set_page_config(layout='wide')
-st.title("STRUCTURDLE or maybe DRUGDLE or maybe MOLECULARDLE")
+#st.title("STRUCTURDLE or maybe DRUGDLE or maybe MOLECULARDLE")
+st.title("STRUCTURDLE or maybe MOLECULARDLE?")
 col1, col2 = st.columns([2,1])
 
 # Generate the line number for grabbing the target from the current date     
