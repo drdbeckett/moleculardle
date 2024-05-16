@@ -27,7 +27,7 @@ state = st.session_state
 if 'guessnum' not in state:
     state.guessnum = 0
 
-# Block for Win/Loss condition - need to implement Endless as an option  
+# Block for Win/Loss condition
 if 'LockOut' not in state:
     state.LockOut = False
 if 'Won' not in state:
@@ -36,6 +36,9 @@ if 'Lost' not in state:
     state.Lost = False
 if 'Endless' not in state:
     state.Endless = False
+if 'NewEndless' not in state:
+    state.NewEndless = False
+
 
 # store list of guessed SMILES strings to quickly check if a guess is unique
 if 'guesses' not in state:
@@ -49,6 +52,7 @@ st.set_page_config(layout='wide')
 #st.title("STRUCTURDLE or maybe DRUGDLE or maybe MOLECULARDLE")
 st.title("STRUCTURDLE or maybe MOLECULARDLE?")
 col1, col2 = st.columns([2,1])
+#col3, col4 = st.columns([5,1])
 
 # Generate the line number for grabbing the target from the current date     
 # and pull out the full line as an array to parse at our leisure
@@ -124,12 +128,13 @@ def emojify():
 
 # Get the target SMILES string from the csv file line
 # usually have to strip the double quotes
-if state.Endless:      
+if state.NewEndless:      
     # I should read in the file initially and just parse the array again here instead of another read
     numlines=8288
     targetnum=random.randrange(1,numlines)
     tline = linecache.getline('dsmiles_cleaned.csv', targetnum) 
     state.targetline = [ '"{}"'.format(x) for x in list(csv.reader([tline], delimiter=',', quotechar='"'))[0] ]
+    state.NewEndless=False
 target=state.targetline[3].strip('\"')
 targetm = Chem.MolFromSmiles(target)
 targetHAC = rdMolDescriptors.CalcNumHeavyAtoms(targetm)
@@ -144,33 +149,47 @@ guess = ""
 validguess = False
 
 # for the winners or losers
-if state.Won:
-    st.write("You got it on guess ",str(state.guessnum),"! The answer is ",state.targetline[1].strip('\"'))
-    link='https://go.drugbank.com/drugs/'+state.targetline[0].strip('\"')
-    st.write(link)
-    st.write(state.targetline[9].strip('\"'))
-    st.image(view_mcs(state.FinalGuessm,targetm))
-    if not state.Endless:  
-        st.write("Copy the emoji string to show off to your friends, colleagues, and enemies!")
-        st.write("Structurdle ",str(date.today().month),"/",str(date.today().day),"/",str(date.today().year),": ", emojify())
+if state.LockOut:
+    if state.Won:
+        st.write("You got it on guess ",str(state.guessnum),"! The answer is ",state.targetline[1].strip('\"'))
+        link='https://go.drugbank.com/drugs/'+state.targetline[0].strip('\"')
+        st.write(link)
+        st.write(state.targetline[9].strip('\"'))
+        st.image(view_mcs(state.FinalGuessm,targetm))
+        if not state.Endless:  
+            st.write("Copy the emoji string to show off to your friends, colleagues, and enemies!")
+            st.write("Structurdle ",str(date.today().month),"/",str(date.today().day),"/",str(date.today().year),": ", emojify())
 
-if state.Lost:
-    st.write("Better luck next time! Here's how close you got.")
-    st.write("The answer is ",state.targetline[1].strip('\"'))
-    link='https://go.drugbank.com/drugs/'+state.targetline[0].strip('\"')
-    st.write(link)
-    st.write(state.targetline[9].strip('\"'))
-    st.image(view_mcs(state.FinalGuessm,targetm))
-    if not state.Endless:  
-        st.write("Copy the emoji string to demonstrate how hard you tried before tapping out!")
-        st.write("Structurdle ",str(date.today().month),"/",str(date.today().day),"/",str(date.today().year),": ", emojify())
+    if state.Lost:
+        st.write("Better luck next time! Here's how close you got.")
+        st.write("The answer is ",state.targetline[1].strip('\"'))
+        link='https://go.drugbank.com/drugs/'+state.targetline[0].strip('\"')
+        st.write(link)
+        st.write(state.targetline[9].strip('\"'))
+        st.image(view_mcs(state.FinalGuessm,targetm))
+        if not state.Endless:  
+            st.write("Copy the emoji string to demonstrate how hard you tried before tapping out!")
+            st.write("Structurdle ",str(date.today().month),"/",str(date.today().day),"/",str(date.today().year),": ", emojify())
+
+    # reset button that initiates endless mode
+    if st.button(":green-background[♾️ Continue in Endless Mode? ♾️]", type="secondary"):
+        state.Won = False
+        state.Lost = False
+        state.LockOut = False
+        state.Endless = True
+        state.NewEndless = True
+        # clean out the data frame table
+        state.outdf = pd.DataFrame({"Guess Number": [],
+                                       "Tanimoto": [],
+                                       "MCS": []})
+        st.rerun()
 ###########################
 
 # Get input structure and properties
 # TODO: style these writes
 if not state.LockOut:
     with col1:
-        st.write("Guess the drug!")
+        st.write("Guess the drug (or drug-like compound)!")
         st.write("Target empirical formula:", targetformula)
         guess = st_ketcher()
 
@@ -193,7 +212,7 @@ if guess:
 # The give up button
 if not state.LockOut:
     with col2:
-        if st.button("Give up?", type="primary"):
+        if st.button("☠️Give up?☠️", type="primary"):
             if guess:
                 state.LockOut = True
                 state.Lost = True
@@ -201,6 +220,17 @@ if not state.LockOut:
                 st.rerun()
             else:
                 st.write("Oh come on you haven't even tried. Draw something and click Apply!")
+
+# The Endless button
+    with col2:
+        if st.button(":green-background[♾️Endless Mode♾️]", type="secondary"):
+            state.Endless = True
+            state.NewEndless = True
+            # clean out the data frame table
+            state.outdf = pd.DataFrame({"Guess Number": [],
+                                           "Tanimoto": [],
+                                           "MCS": []})
+            st.rerun()
 
 # Similarity scoring
     if guess:
