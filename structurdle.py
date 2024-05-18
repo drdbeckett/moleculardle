@@ -25,6 +25,8 @@ rdDepictor.SetPreferCoordGen(True)
 
 state = st.session_state
 
+# TODO: Change the colors automatically, maybe dark and purple?
+
 # initialize some session state values ####################################
 # just get the EST date
 if 'today' not in state:
@@ -212,6 +214,14 @@ validguess = False
 
 # for the winners or losers
 if state.LockOut:
+    # TODO: Need to define a function that changes the cookie depending on the score for the day, it should store the state and the day
+    # then if the date does not match it pushes the old state to a counter so we can keep track of averages. Ideally we'd keep track of 
+    # just a few stats:
+              # 1. Today's result (initiate lockout if the game has already been played today)
+              # 2. Today's working score for the daily puzzle (do this LAST, might be heavy)
+              # 3. Win streak (maybe a lose streak and a daily streak later, keep it simple for the moment)
+              # 4. Average number of guesses per win on Daily
+              # 5. Average number of wins per Daily play
     if state.Won:
         st.write("You got it on guess ",str(state.guessnum),"! The answer is ",state.targetline[1].strip('\"'))
         link='https://go.drugbank.com/drugs/'+state.targetline[0].strip('\"')
@@ -223,6 +233,7 @@ if state.LockOut:
             st.write("Structurdle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
 
     if state.Lost:
+        # TODO: Move the image up and try to make it larger  
         st.write("Better luck next time! Here's how close you got.")
         st.write("The answer is ",state.targetline[1].strip('\"'))
         link='https://go.drugbank.com/drugs/'+state.targetline[0].strip('\"')
@@ -331,4 +342,5 @@ with col2:
                             column_config={"MCS": st.column_config.ImageColumn()},
                             hide_index=True)
 
+# Just to deal with the guess autopopulation problem on Endless if the button is clicked 
 state.FirstEndless = False
