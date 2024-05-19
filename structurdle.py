@@ -63,6 +63,7 @@ if 'EndlessMW' not in state:
 if 'guesses' not in state:
     state.guesses = []
 if 'outdf' not in state:
+    #TODO: Experiment with increasing readouts kept in table (ΔHBA, ΔHBD, ΔNAr, ΔNAl)  
     state.outdf = pd.DataFrame({"Guess Number": [],
                                            "Tanimoto": [],
                                            "MCS": []})
@@ -245,11 +246,12 @@ if state.LockOut:
             st.write("Structurdle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
 
     # reset button that initiates endless mode
+    # TODO: Make this and the other endless button primary buttons that are green
     if st.button(":green-background[♾️ Continue in Endless Mode? ♾️]", type="secondary"):
         clean_slate()
         st.rerun()
 
-    state.EndlessMW = st.slider("Endless Mode Molecular Weight Cutoff", 50, 1000, int(state.EndlessMW))
+    state.EndlessMW = st.slider("Endless Mode Molecular Weight Cutoff", 100, 1000, int(state.EndlessMW))
 ###########################
 
 # Get input structure and properties
