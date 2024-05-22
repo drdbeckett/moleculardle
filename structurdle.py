@@ -234,7 +234,7 @@ def clean_slate():
 #######################################################
 # Target definition and initialization
 ### debug targets
-target = "NC1CCCCC1"
+#target = "NC1CCCCC1"
 #target = "CC(C)C1=C(C(=C(N1CCC(CC(CC(=O)O)O)O)C2=CC=C(C=C2)F)C3=CC=CC=C3)C(=O)NC4=CC=CC=C4"
 #target = "O=C(N(C)C1=C2N(C)C=N1)N(C)C2=O"
 #target = "C[N+]1(C)[C@H]2CC[C@@H]1C[C@@H](C2)OC(=O)C(CO)C1=CC=CC=C1"
@@ -246,7 +246,7 @@ if state.NewEndless:
     state.NewEndless=False
     state.FirstEndless=True
 # Canonicalize the smiles while reading it from target line    
-#target=Chem.CanonSmiles(state.targetline[3].strip('\"'))
+target=Chem.CanonSmiles(state.targetline[3].strip('\"'))
 targetm = Chem.MolFromSmiles(target)
 targetHAC = rdMolDescriptors.CalcNumHeavyAtoms(targetm)
 targetNumHD = rdMolDescriptors.CalcNumHBD(targetm)
