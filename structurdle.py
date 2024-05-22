@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_ketcher import st_ketcher
 from datetime import datetime, timezone
+from collections import defaultdict
 from io import BytesIO
 import pandas as pd
 import random
@@ -15,6 +16,7 @@ from rdkit import DataStructs
 from rdkit.Chem.Fingerprints import FingerprintMols
 from rdkit.Chem import Draw
 from rdkit.Chem.Draw import rdDepictor
+from rdkit.Chem.Draw import rdMolDraw2D
 rdDepictor.SetPreferCoordGen(True)
 
 
@@ -63,7 +65,7 @@ if 'EndlessMW' not in state:
 if 'guesses' not in state:
     state.guesses = []
 if 'outdf' not in state:
-    #TODO: Experiment with increasing readouts kept in table (ΔHBA, ΔHBD, ΔNAr, ΔNAl)  
+    #TODO: Experiment with increasing readouts kept in table (ΔHBA, ΔHBD, ΔNAr, ΔNAl)
     state.outdf = pd.DataFrame({"Guess Number": [],
                                            "Tanimoto": [],
                                            "MCS": []})
@@ -76,7 +78,6 @@ if not state.Endless:
     st.title(dailytitle)
 if state.Endless:
     st.title("🚨 ENDLESS MODE ACTIVATED 🚨")
-# TODO: Implement a molecular weight slider for endless mode
 
 col1, col2 = st.columns([2,1])
 
@@ -106,8 +107,6 @@ def target_acquisition(MW,rseed):
     MW_filtered = filter_compounds(lines, MW)
     random.seed(rseed)
     targetindex=random.randrange(1,len(MW_filtered))
-    print("Weight: ",MW)
-    print("Length of list: ",len(MW_filtered))
     return MW_filtered[targetindex-1]
 
 # Generate the line number for grabbing the target from the current date     
@@ -127,33 +126,81 @@ if 'targetline' not in state:
 ####### Function definitions ######################################
 # For visualizing the MCS
 def view_mcs(targetm,guessm):
-    rgba_color = (0.0, 0.0, 1.0, 0.2) # transparent blue
+    #rgba_color = (0.0, 0.0, 1.0, 0.2) # transparent blue
+    colors = [(0.0, 0.0, 1.0, 0.2), (1.0, 0.0, 0.0, 0.2)] # transparent blue and red
 
-    # Actual MCS call
-    # the default is very loosey-goosey
-    #mcs = rdFMCS.FindMCS([targetm,guessm])
-    # I think this one is just right
-    mcs = rdFMCS.FindMCS([targetm,guessm], matchValences=True, ringMatchesRingOnly=True)
-    # This is too strict - I don't want people to not think something's there if it's actually a ring and they drew a methyl
-    #mcs = rdFMCS.FindMCS([targetm,guessm], matchValences=True, ringMatchesRingOnly=True, completeRingsOnly=True)
-    mcs_mol = Chem.MolFromSmarts(mcs.smartsString)
-    match1 = guessm.GetSubstructMatch(mcs_mol)
 
-    # Getting the bonds to highlight
-    bonds = []
-    for bond in mcs_mol.GetBonds():
-       aid1 = match1[bond.GetBeginAtomIdx()]
-       aid2 = match1[bond.GetEndAtomIdx()]
-       bonds.append(guessm.GetBondBetweenAtoms(aid1,aid2).GetIdx())
-    mcs_pil = Draw.MolToImage(guessm, highlightAtoms=match1, highlightBonds=bonds, highlightColor=rgba_color)
-    #mcs_pil = Draw.MolToImage(mcs_mol)
+    # We're doing 2 MCS calls, one loose then one strict
+    # TODO: Make loose looser, make aromaticity checker
+    loosemcs = rdFMCS.FindMCS([targetm,guessm])
+    loosemcs_mol = Chem.MolFromSmarts(loosemcs.smartsString)
+    loose_gmatch = guessm.GetSubstructMatch(loosemcs_mol)
+    tightmcs = rdFMCS.FindMCS([targetm,guessm], matchValences=True, ringMatchesRingOnly=True)
+    tightmcs_mol = Chem.MolFromSmarts(tightmcs.smartsString)
+    tight_gmatch = guessm.GetSubstructMatch(tightmcs_mol)
+    tight_tmatch = targetm.GetSubstructMatch(tightmcs_mol)
 
+    # should add a bit here that gets aromaticity state for matching atoms in target
+    athighlights = defaultdict(list)
+    arads = {}
+
+    # index of the match list is substructure index, entries are the atom indices
+    # in either guessm or tightm, loop over the tight substructure match first
+    for sid in range(len(tight_gmatch)):
+        gid = tight_gmatch[sid]
+        tid = tight_tmatch[sid]
+        arads[gid] = 0.2
+        # check if the guess aromaticity matches target
+        if guessm.GetAtomWithIdx(gid).GetIsAromatic() == targetm.GetAtomWithIdx(tid).GetIsAromatic():
+            athighlights[gid].append(colors[0])
+        else:
+            athighlights[gid].append(colors[1])
+
+    # Now check for anything from the loose substructure match
+    for sid in range(len(loose_gmatch)):
+        gid = loose_gmatch[sid]
+        # check if the guess aromaticity matches target
+        if gid not in athighlights:
+            athighlights[gid].append(colors[1])
+     
+    #Now do the same procedure for bonds, loop over the tight bonds and get
+    #indices we can use to get guess and target atoms involved in bonds and then
+    #get those bond IDs
+    bndhighlights = defaultdict(list)
+    for bond in tightmcs_mol.GetBonds():
+        gid1 = tight_gmatch[bond.GetBeginAtomIdx()]
+        gid2 = tight_gmatch[bond.GetEndAtomIdx()]
+        tid1 = tight_tmatch[bond.GetBeginAtomIdx()]
+        tid2 = tight_tmatch[bond.GetEndAtomIdx()]
+        gbid = (guessm.GetBondBetweenAtoms(gid1,gid2).GetIdx())
+        tbid = (targetm.GetBondBetweenAtoms(tid1,tid2).GetIdx())
+        # Check for aromaticity match
+        if guessm.GetBondWithIdx(gbid).GetIsAromatic() == targetm.GetBondWithIdx(tbid).GetIsAromatic():
+            bndhighlights[gbid].append(colors[0])
+        else:
+            bndhighlights[gbid].append(colors[1])
+     
+    # Loose substructure match for bonds
+    for bond in loosemcs_mol.GetBonds():
+        gid1 = loose_gmatch[bond.GetBeginAtomIdx()]
+        gid2 = loose_gmatch[bond.GetEndAtomIdx()]
+        gbid = (guessm.GetBondBetweenAtoms(gid1,gid2).GetIdx())
+        if gbid not in bndhighlights:
+            bndhighlights[gbid].append(colors[1])
+     
+    # the actual draw command
+    #mcs_pil = Draw.MolToImage(guessm, size=(400, 400), highlightAtoms=dict(athighlights), highlightBonds=dict(bndhighlights), highlightRadii=arads)
+    d2d = rdMolDraw2D.MolDraw2DCairo(400,400)
+    d2d.DrawMoleculeWithHighlights(guessm,"",dict(athighlights),dict(bndhighlights),arads,{})
+    d2d.FinishDrawing()
+    mcs_pil = BytesIO(d2d.GetDrawingText())
 
     # convert the png pil to a data url of a jpeg
-    buffered = BytesIO()
-    mcs_pil.save(buffered, format="JPEG")
-    mcs_b64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
-    return 'data:image/jpeg;base64,' + mcs_b64
+    #buffered = BytesIO()
+    #mcs_pil.save(buffered, format="JPEG")
+    mcs_b64 = base64.b64encode(mcs_pil.getvalue()).decode("utf-8")
+    #return 'data:image/jpeg;base64,' + mcs_b64
+    return 'data:image/png;base64,' + mcs_b64
 
 # Printing the emoji string for winners/losers
 def emojify():
@@ -187,7 +234,7 @@ def clean_slate():
 #######################################################
 # Target definition and initialization
 ### debug targets
-#target = "NC1CCCCC1"
+target = "NC1CCCCC1"
 #target = "CC(C)C1=C(C(=C(N1CCC(CC(CC(=O)O)O)O)C2=CC=C(C=C2)F)C3=CC=CC=C3)C(=O)NC4=CC=CC=C4"
 #target = "O=C(N(C)C1=C2N(C)C=N1)N(C)C2=O"
 #target = "C[N+]1(C)[C@H]2CC[C@@H]1C[C@@H](C2)OC(=O)C(CO)C1=CC=CC=C1"
@@ -198,7 +245,8 @@ if state.NewEndless:
     state.targetline = target_acquisition(state.EndlessMW,timeseed)
     state.NewEndless=False
     state.FirstEndless=True
-target=state.targetline[3].strip('\"')
+# Canonicalize the smiles while reading it from target line    
+#target=Chem.CanonSmiles(state.targetline[3].strip('\"'))
 targetm = Chem.MolFromSmiles(target)
 targetHAC = rdMolDescriptors.CalcNumHeavyAtoms(targetm)
 targetNumHD = rdMolDescriptors.CalcNumHBD(targetm)
@@ -216,7 +264,7 @@ validguess = False
 # for the winners or losers
 if state.LockOut:
     # TODO: Need to define a function that changes the cookie depending on the score for the day, it should store the state and the day
-    # then if the date does not match it pushes the old state to a counter so we can keep track of averages. Ideally we'd keep track of 
+    # then if the date does not match it pushes the old state to a counter so we can keep track of averages. Ideally we'd keep track of
     # just a few stats:
               # 1. Today's result (initiate lockout if the game has already been played today)
               # 2. Today's working score for the daily puzzle (do this LAST, might be heavy)
@@ -234,7 +282,7 @@ if state.LockOut:
             st.write("Structurdle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
 
     if state.Lost:
-        # TODO: Move the image up and try to make it larger  
+        # TODO: Move the image up and try to make it larger
         st.write("Better luck next time! Here's how close you got.")
         st.write("The answer is ",state.targetline[1].strip('\"'))
         link='https://go.drugbank.com/drugs/'+state.targetline[0].strip('\"')
@@ -312,7 +360,7 @@ if not state.LockOut:
  
         # check if guess is correct, output similarity stats if not
         if validguess and tan == 1:
-            # TODO: splashier victory, write out copyable string
+            # TODO: splashier victory
             #st.write("You got it! And it only took", state.guessnum, " tries!")
             #st.write("You got it! The answer is ",state.targetline[1].strip('\"'))
             state.LockOut = True
@@ -344,5 +392,4 @@ with col2:
                             column_config={"MCS": st.column_config.ImageColumn()},
                             hide_index=True)
 
-# Just to deal with the guess autopopulation problem on Endless if the button is clicked 
 state.FirstEndless = False
