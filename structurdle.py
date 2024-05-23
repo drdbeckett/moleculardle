@@ -202,6 +202,20 @@ def view_mcs(targetm,guessm):
     #return 'data:image/jpeg;base64,' + mcs_b64
     return 'data:image/png;base64,' + mcs_b64
 
+# For more human-oriented read out of guess propertie relative to target
+def property_readout(num, prop):
+    if num < -1:
+        outstring="There are "+str(num)+" extra "+str(prop)+"s in the guess"
+    if num > 1:
+        outstring="There are "+str(num)+" "+str(prop)+"s missing from the guess"
+    if num == 1:
+        outstring="There is 1 "+str(prop)+" missing from the guess"
+    if num == -1:
+        outstring="There is 1 extra "+str(prop)+" in the guess"
+    if num == 0:
+        outstring="This guess has the correct number of "+str(prop)+"s!"
+    return outstring
+
 # Printing the emoji string for winners/losers
 def emojify():
     emojistring=""
@@ -368,15 +382,18 @@ if not state.LockOut:
             state.FinalGuessm = guessm
             st.rerun()
         else:             
-            st.write("Guess number:", state.guessnum)
-            st.write("Your guess had this Tanimoto similarity to the target:", tan)
-            st.write("Target minus guess heavy atom count:", HACdiff)
-            st.write("Target minus guess H bond donors:", NumHDdiff)
-            st.write("Target minus guess H bond acceptors:", NumHAdiff)
-            #st.write("Target minus guess ring count:", RCdiff)
-            st.write("Target minus guess aliphatic ring count:", AlRCdiff)
-            st.write("Target minus guess aromatic ring count:", ArRCdiff)
-            st.write("Atoms that share maximum common substructure with target highlighted below:")
+            st.write("Guess number:", str(state.guessnum))
+            st.write("Your guess had this Tanimoto similarity to the target:", str(tan))
+            st.write(property_readout(HACdiff, "heavy atom"))
+            st.write(property_readout(NumHDdiff, "H-bond donor"))
+            st.write(property_readout(NumHAdiff, "H-bond acceptor"))
+            #st.write(property_readout(RCdiff, "ring"))
+            st.write(property_readout(AlRCdiff, "*aliphatic* ring"))
+            st.write(property_readout(ArRCdiff, "*aromatic* ring"))
+            substruct_line = '''Atoms/bonds in the maximum common substructure with the target molecule are highlighted below,
+                       atoms/bonds highlighted in  :blue[blue] matched a :blue[tight] substructure search while atoms/bonds
+                       in :red[red] only matched a :red[loose] substructure search and need some work.'''
+            st.markdown(substruct_line)
  
         # If there was a validguess then update the table
         if validguess:
