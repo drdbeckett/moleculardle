@@ -1,5 +1,6 @@
 import streamlit as st
 from streamlit_ketcher import st_ketcher
+import streamlit.components.v1 as components
 from datetime import datetime, timezone
 from collections import defaultdict
 from io import BytesIO
@@ -205,12 +206,14 @@ def view_mcs(targetm,guessm):
 # For more human-oriented read out of guess propertie relative to target
 def property_readout(num, prop):
     if num < -1:
+        num = num*-1
         outstring="There are "+str(num)+" extra "+str(prop)+"s in the guess"
     if num > 1:
         outstring="There are "+str(num)+" "+str(prop)+"s missing from the guess"
     if num == 1:
         outstring="There is 1 "+str(prop)+" missing from the guess"
     if num == -1:
+        num = num*-1
         outstring="There is 1 extra "+str(prop)+" in the guess"
     if num == 0:
         outstring="This guess has the correct number of "+str(prop)+"s!"
@@ -244,6 +247,21 @@ def clean_slate():
     state.outdf = pd.DataFrame({"Guess Number": [],
                                 "Tanimoto": [],
                                 "MCS": []})
+
+# For button color background
+def ChangeButtonColour(widget_label, font_color, background_color='transparent'):
+    htmlstr = f"""
+        <script>
+            var elements = window.parent.document.querySelectorAll('button');
+            for (var i = 0; i < elements.length; ++i) {{ 
+                if (elements[i].innerText == '{widget_label}') {{ 
+                    elements[i].style.color ='{font_color}';
+                    elements[i].style.background = '{background_color}'
+                }}
+            }}
+        </script>
+        """
+    components.html(f"{htmlstr}", height=0, width=0)
 
 #######################################################
 # Target definition and initialization
@@ -309,10 +327,11 @@ if state.LockOut:
 
     # reset button that initiates endless mode
     # TODO: Make this and the other endless button primary buttons that are green
-    if st.button(":green-background[♾️ Continue in Endless Mode? ♾️]", type="secondary"):
+    if st.button("🚨 Continue in Endless Mode? 🚨", type="secondary"):
         clean_slate()
         st.rerun()
 
+    ChangeButtonColour('🚨 Continue in Endless Mode? 🚨', 'white', 'green')
     state.EndlessMW = st.slider("Endless Mode Molecular Weight Cutoff", 100, 1000, int(state.EndlessMW))
 ###########################
 
@@ -323,6 +342,7 @@ if not state.LockOut:
         st.write("Guess the drug (or drug-like compound)!")
         st.write("Target empirical formula:", targetformula)
         guess = st_ketcher()
+        ChangeButtonColour('ketcher', 'white', 'green')
 
 # get properties from the input guess
 if guess and not state.FirstEndless: 
@@ -345,7 +365,7 @@ if guess and not state.FirstEndless:
 # The give up button
 if not state.LockOut:
     with col2:
-        if st.button("☠️Give up?☠️", type="primary"):
+        if st.button("☠️  Give up? ☠️", type="primary"):
             if guess:
                 state.LockOut = True
                 state.Lost = True
@@ -358,9 +378,15 @@ if not state.LockOut:
 
 # The Endless button
     with col2:
-        if st.button(":green-background[♾️Endless Mode♾️]", type="secondary"):
+        # if st.button(":green-background[♾️Endless Mode♾️]", type="secondary"):
+        #if st.button("🌀Endless Mode🌀", type="secondary"):
+        #if st.button("🏓Endless Mode🏓", type="secondary"):
+        if st.button("🚨 Initiate Endless Mode? 🚨", type="secondary"):
             clean_slate()
             st.rerun()
+
+    #ChangeButtonColour('🌀Endless Mode🌀', 'white', 'green')
+    ChangeButtonColour('🚨 Initiate Endless Mode? 🚨', 'white', 'green')
 
 # Similarity scoring
     if guess and not state.FirstEndless:
