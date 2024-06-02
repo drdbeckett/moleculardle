@@ -133,7 +133,7 @@ def view_mcs(targetm,guessm):
 
     # We're doing 2 MCS calls, one loose then one strict
     # TODO: Make loose looser, make aromaticity checker
-    loosemcs = rdFMCS.FindMCS([targetm,guessm])
+    loosemcs = rdFMCS.FindMCS([targetm,guessm], bondCompare=rdFMCS.BondCompare.CompareAny)
     loosemcs_mol = Chem.MolFromSmarts(loosemcs.smartsString)
     loose_gmatch = guessm.GetSubstructMatch(loosemcs_mol)
     tightmcs = rdFMCS.FindMCS([targetm,guessm], matchValences=True, ringMatchesRingOnly=True)
@@ -430,6 +430,40 @@ if not state.LockOut:
                                    "Tanimoto": [tan],
                                    "MCS": mcs_durl})
             state.outdf = pd.concat([state.outdf,outrow]) 
+        # Substructure highlighting help guide
+        with st.popover("Substructure highlighting guide"):
+            st.markdown(
+                    """
+                    There are several key differences between the :blue[blue] and :red[red] highlighting,
+                    in all cases :blue[blue] is a stricter substructure search and overrides :red[red]. Below
+                    are some basic guidelines with example highlightings overlaid on guess and target molecules.
+                    - The valence of atoms can be wrong in :red[red], as well as the bond order, but not in :blue[blue].
+                    """
+                    )
+            st.image("examples/ex1.png")
+            st.markdown(
+                    """
+                    - If the target is a ring but guess is not a ring, :red[red] will match but :blue[blue] will not.
+                    """
+                    )
+            st.image("examples/ex2.png")
+            st.markdown(
+                    """
+                    - If the target ring is aliphatic but the guess is aromatic, :red[red] will match but :blue[blue] will not (and vice versa).
+                    """
+                    )
+            st.image("examples/ex3.png")
+            st.markdown(
+                    """
+                    - If the guess ring is not the right size then :blue[blue] will match until it reaches the closing bond (for smaller rings)
+                    or until it reaches the final atom of the target ring (for larger rings). :red[Red] will try to find the longest bond path
+                    around the full molecule and may highlight bonds :blue[blue] does not. This can lead to behavior that is not obvious at first
+                    glance, especially in complicated cases where a ring fusion is in the incorrect position. If the daily challenge is too difficult
+                    it can be helpful to play on Endless with a lower molecular weight to hone your skills. I believe in you!
+                    """
+                    )
+            st.image("examples/ex4.png")
+              
 with col2:
     OutTable = st.dataframe(state.outdf,
                             column_config={"MCS": st.column_config.ImageColumn()},
