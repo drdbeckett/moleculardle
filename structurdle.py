@@ -72,8 +72,7 @@ if 'outdf' not in state:
                                            "MCS": []})
 
 st.set_page_config(layout='wide')
-#st.title("STRUCTURDLE or maybe DRUGDLE or maybe MOLECULARDLE")
-st.title("STRUCTURDLE or maybe MOLECULARDLE?")
+st.title("MOLECULARDLE: A small molecule guessing game")
 if not state.Endless:
     dailytitle="Daily Puzzle: "+str(state.today.month)+"/"+str(state.today.day)+"/"+str(state.today.year)
     st.title(dailytitle)
@@ -429,7 +428,8 @@ if not state.LockOut:
             outrow = pd.DataFrame({"Guess Number": [int(state.guessnum)],
                                    "Tanimoto": [tan],
                                    "MCS": mcs_durl})
-            state.outdf = pd.concat([state.outdf,outrow]) 
+            state.outdf = pd.concat([state.outdf,outrow])
+              
         # Substructure highlighting help guide
         with st.popover("Substructure highlighting guide"):
             st.markdown(
