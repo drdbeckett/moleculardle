@@ -218,6 +218,14 @@ def property_readout(num, prop):
         outstring="This guess has the correct number of "+str(prop)+"s!"
     return outstring
 
+# For reading out specifically atom count difference (if different)
+def atomcountdiffer(targetm,guessm,num,name):
+    pstring = "[#"+str(num)+"]"
+    namestring = name+" atom"
+    pat = Chem.MolFromSmarts(pstring)
+    delta = len(targetm.GetSubstructMatches(pat)) - len(guessm.GetSubstructMatches(pat))
+    if delta != 0: st.write(property_readout(delta, namestring))
+          
 # Printing the emoji string for winners/losers
 def emojify():
     emojistring=""
@@ -408,6 +416,19 @@ if not state.LockOut:
             st.rerun()
         else:             
             st.write("Guess number:", str(state.guessnum))
+            with st.popover("Empirical formula comparison"):
+                guessformula = rdMolDescriptors.CalcMolFormula(guessm)
+                st.write("Guess empirical formula: ",guessformula)
+                atomcountdiffer(targetm,guessm,6,"carbon")
+                atomcountdiffer(targetm,guessm,1,"hydrogen")
+                atomcountdiffer(targetm,guessm,7,"nitrogen")
+                atomcountdiffer(targetm,guessm,8,"oxygen")
+                atomcountdiffer(targetm,guessm,9,"fluorine")
+                atomcountdiffer(targetm,guessm,15,"phosphorus")
+                atomcountdiffer(targetm,guessm,16,"sulfur")
+                atomcountdiffer(targetm,guessm,17,"chlorine")
+                atomcountdiffer(targetm,guessm,35,"bromine")
+              
             st.write("Your guess had this Tanimoto similarity to the target:", str(tan))
             st.write(property_readout(HACdiff, "heavy atom"))
             st.write(property_readout(NumHDdiff, "H-bond donor"))
