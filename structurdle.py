@@ -330,7 +330,7 @@ if state.LockOut:
         st.image(view_mcs(state.FinalGuessm,targetm))
         if not state.Endless:  
             st.write("Copy the emoji string to demonstrate how hard you tried before tapping out!")
-            st.write("Structurdle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
+            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
 
     # reset button that initiates endless mode
     # TODO: Make this and the other endless button primary buttons that are green
