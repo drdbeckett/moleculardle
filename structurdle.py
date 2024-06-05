@@ -420,7 +420,7 @@ if not state.LockOut:
                 guessformula = rdMolDescriptors.CalcMolFormula(guessm)
                 st.write("Guess empirical formula: ",guessformula)
                 atomcountdiffer(targetm,guessm,6,"carbon")
-                atomcountdiffer(targetm,guessm,1,"hydrogen")
+                atomcountdiffer(Chem.AddHs(targetm),Chem.AddHs(guessm),1,"hydrogen")
                 atomcountdiffer(targetm,guessm,7,"nitrogen")
                 atomcountdiffer(targetm,guessm,8,"oxygen")
                 atomcountdiffer(targetm,guessm,9,"fluorine")
