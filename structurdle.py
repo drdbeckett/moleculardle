@@ -207,14 +207,14 @@ def property_readout(num, prop):
     if num < -1:
         num = num*-1
         outstring="There are "+str(num)+" extra "+str(prop)+"s in the guess"
-    if num > 1:
+    elif num > 1:
         outstring="There are "+str(num)+" "+str(prop)+"s missing from the guess"
-    if num == 1:
+    elif num == 1:
         outstring="There is 1 "+str(prop)+" missing from the guess"
-    if num == -1:
+    elif num == -1:
         num = num*-1
         outstring="There is 1 extra "+str(prop)+" in the guess"
-    if num == 0:
+    elif num == 0:
         outstring="This guess has the correct number of "+str(prop)+"s!"
     return outstring
 
