@@ -419,15 +419,18 @@ if not state.LockOut:
             with st.popover("Empirical formula comparison"):
                 guessformula = rdMolDescriptors.CalcMolFormula(guessm)
                 st.write("Guess empirical formula: ",guessformula)
-                atomcountdiffer(targetm,guessm,6,"carbon")
-                atomcountdiffer(Chem.AddHs(targetm),Chem.AddHs(guessm),1,"hydrogen")
-                atomcountdiffer(targetm,guessm,7,"nitrogen")
-                atomcountdiffer(targetm,guessm,8,"oxygen")
-                atomcountdiffer(targetm,guessm,9,"fluorine")
-                atomcountdiffer(targetm,guessm,15,"phosphorus")
-                atomcountdiffer(targetm,guessm,16,"sulfur")
-                atomcountdiffer(targetm,guessm,17,"chlorine")
-                atomcountdiffer(targetm,guessm,35,"bromine")
+                if guessformula == targetformula:
+                    st.write("You've nailed the formula! Now you've just got to get the rest right.")
+                else:  
+                    atomcountdiffer(targetm,guessm,6,"carbon")
+                    atomcountdiffer(Chem.AddHs(targetm),Chem.AddHs(guessm),1,"hydrogen")
+                    atomcountdiffer(targetm,guessm,7,"nitrogen")
+                    atomcountdiffer(targetm,guessm,8,"oxygen")
+                    atomcountdiffer(targetm,guessm,9,"fluorine")
+                    atomcountdiffer(targetm,guessm,15,"phosphorus")
+                    atomcountdiffer(targetm,guessm,16,"sulfur")
+                    atomcountdiffer(targetm,guessm,17,"chlorine")
+                    atomcountdiffer(targetm,guessm,35,"bromine")
               
             st.write("Your guess had this Tanimoto similarity to the target:", str(tan))
             st.write(property_readout(HACdiff, "heavy atom"))
