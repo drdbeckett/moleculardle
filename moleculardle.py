@@ -318,7 +318,7 @@ if state.LockOut:
         st.image(view_mcs(state.FinalGuessm,targetm))
         if not state.Endless:  
             st.write("Copy the emoji string to show off to your friends, colleagues, and enemies!")
-            st.write("Structurdle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
+            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
 
     if state.Lost:
         # TODO: Move the image up and try to make it larger
