@@ -38,6 +38,8 @@ controller = CookieController()
 if 'today' not in state:
     local_tz = "US/Eastern"
     state.today = pytz.timezone(local_tz).localize(datetime.today())
+    # Doing intial cookie parsing here to make sure we're not already playing or finished
+    dateseed=str(state.today.day) + str(state.today.year) + str(state.today.month)
     GT_cookie = controller.get('GameToday')
     time.sleep(1)
     if GT_cookie:
