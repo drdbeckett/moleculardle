@@ -43,14 +43,14 @@ if 'today' not in state:
     GT_cookie = controller.get('GameToday')
     time.sleep(1)
     if GT_cookie:
-        print("It stored: ", GT_cookie)
+        st.write("It stored: ", GT_cookie)
         # if we've not stored the cookie for today's game - reset cookies
         if GT_cookie != dateseed:
-            print("Yesterday's news")
+            st.write("Yesterday's news", GT_cookie)
             controller.set('GameToday',dateseed)
     else:
         controller.set('GameToday', dateseed)
-        print("it didn't")
+        st.write("It didn't store")
 
     cookies = controller.getAll()
     #print("Final test: ", cookies)
