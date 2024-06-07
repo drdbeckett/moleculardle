@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_ketcher import st_ketcher
 import streamlit.components.v1 as components
+from streamlit_cookies_controller import CookieController
 from datetime import datetime, timezone
 from collections import defaultdict
 from io import BytesIO
@@ -20,13 +21,15 @@ from rdkit.Chem.Draw import rdDepictor
 from rdkit.Chem.Draw import rdMolDraw2D
 rdDepictor.SetPreferCoordGen(True)
 
+##############################################################
+#     Moleculardle - A daily small molecule drawing game     #
+#     Started 5/10/2024 - Developed by Daniel Beckett        #
+##############################################################
 
-      #####################
-      #     A DAB app     #
-      # Started 5/10/2024 #
-      #####################
 
 state = st.session_state
+st.set_page_config(layout='wide')
+controller = CookieController()
 
 # TODO: Change the colors automatically, maybe dark and purple?
 
@@ -35,6 +38,22 @@ state = st.session_state
 if 'today' not in state:
     local_tz = "US/Eastern"
     state.today = pytz.timezone(local_tz).localize(datetime.today())
+    GT_cookie = controller.get('GameToday')
+    time.sleep(1)
+    if GT_cookie:
+        print("It stored: ", GT_cookie)
+        # if we've not stored the cookie for today's game - reset cookies
+        if GT_cookie != dateseed:
+            print("Yesterday's news")
+            controller.set('GameToday',dateseed)
+    else:
+        controller.set('GameToday', dateseed)
+        print("it didn't")
+
+    cookies = controller.getAll()
+    #print("Final test: ", cookies)
+    GT_cookie = controller.get('GameToday')
+    print("Final test: ", GT_cookie)
 
 if 'guessnum' not in state:
     state.guessnum = 0
