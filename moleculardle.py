@@ -90,7 +90,6 @@ if 'outdf' not in state:
                                            "Tanimoto": [],
                                            "MCS": []})
 
-st.set_page_config(layout='wide')
 st.title("MOLECULARDLE: A small molecule guessing game")
 if not state.Endless:
     dailytitle="Daily Puzzle: "+str(state.today.month)+"/"+str(state.today.day)+"/"+str(state.today.year)
