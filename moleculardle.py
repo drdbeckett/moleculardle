@@ -43,19 +43,19 @@ if 'today' not in state:
     GT_cookie = controller.get('GameToday')
     time.sleep(1)
     if GT_cookie:
-        st.write("It stored: ", GT_cookie)
+    #    st.write("It stored: ", GT_cookie)
         # if we've not stored the cookie for today's game - reset cookies
         if GT_cookie != dateseed:
-            st.write("Yesterday's news", GT_cookie)
+    #        st.write("Yesterday's news", GT_cookie)
             controller.set('GameToday',dateseed)
     else:
         controller.set('GameToday', dateseed)
-        st.write("It didn't store")
+    #    st.write("It didn't store")
 
     cookies = controller.getAll()
     #print("Final test: ", cookies)
     GT_cookie = controller.get('GameToday')
-    print("Final test: ", GT_cookie)
+    #print("Final test: ", GT_cookie)
 
 if 'guessnum' not in state:
     state.guessnum = 0
@@ -326,7 +326,7 @@ if state.LockOut:
     # then if the date does not match it pushes the old state to a counter so we can keep track of averages. Ideally we'd keep track of
     # just a few stats:
               # 1. Today's result (initiate lockout if the game has already been played today)
-              # 2. Today's working score for the daily puzzle (do this LAST, might be heavy)
+              # 2. Today's working score and dataframe for the daily puzzle, JSON string?
               # 3. Win streak (maybe a lose streak and a daily streak later, keep it simple for the moment)
               # 4. Average number of guesses per win on Daily
               # 5. Average number of wins per Daily play
@@ -339,6 +339,7 @@ if state.LockOut:
         if not state.Endless:  
             st.write("Copy the emoji string to show off to your friends, colleagues, and enemies!")
             st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
+            st.write("I got it in ",str(state.guessnum),"! Think you can do better? moleculardle.streamlit.app")
 
     if state.Lost:
         # TODO: Move the image up and try to make it larger
@@ -351,6 +352,7 @@ if state.LockOut:
         if not state.Endless:  
             st.write("Copy the emoji string to demonstrate how hard you tried before tapping out!")
             st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
+            st.write("I gave in after ",str(state.guessnum),"! Think you can do better? moleculardle.streamlit.app")
 
     # reset button that initiates endless mode
     # TODO: Make this and the other endless button primary buttons that are green
