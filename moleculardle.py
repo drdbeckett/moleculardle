@@ -99,6 +99,7 @@ if state.Endless:
     st.title("🚨 ENDLESS MODE ACTIVATED 🚨")
 
 col1, col2 = st.columns([2,1])
+col1, col2 = st.columns([2,0])
 col2 = col1
 
 
