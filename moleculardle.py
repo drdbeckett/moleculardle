@@ -364,12 +364,11 @@ if state.LockOut:
 ###########################
 
 # Get input structure and properties
-# TODO: style these writes
 if not state.LockOut:
-    st.write("Guess the drug (or drug-like compound)!")
-    st.write("Target empirical formula:", targetformula)
-    guess = st_ketcher()
-    ChangeButtonColour('ketcher', 'white', 'green')
+     with col1:
+        st.write("Guess the drug (or drug-like compound)!")
+        st.write("Target empirical formula:", targetformula)
+        guess = st_ketcher()
 
 # get properties from the input guess
 if guess and not state.FirstEndless: 
@@ -391,6 +390,7 @@ if guess and not state.FirstEndless:
 
 # The give up button
 if not state.LockOut:
+    with col2:
         if st.button("☠️  Give up? ☠️", type="primary"):
             if guess:
                 state.LockOut = True
@@ -403,15 +403,12 @@ if not state.LockOut:
         state.EndlessMW = st.slider("Endless Mode Molecular Weight Cutoff:", 100, 1000, int(state.EndlessMW))
 
 # The Endless button
-    # if st.button(":green-background[♾️Endless Mode♾️]", type="secondary"):
-    #if st.button("🌀Endless Mode🌀", type="secondary"):
-    #if st.button("🏓Endless Mode🏓", type="secondary"):
+    with col2:
         if st.button("🚨 Initiate Endless Mode? 🚨", type="secondary"):
             clean_slate()
             st.rerun()
 
-#ChangeButtonColour('🌀Endless Mode🌀', 'white', 'green')
-ChangeButtonColour('🚨 Initiate Endless Mode? 🚨', 'white', 'green')
+    ChangeButtonColour('🚨 Initiate Endless Mode? 🚨', 'white', 'green')
 
 # Similarity scoring
     if guess and not state.FirstEndless:
@@ -506,8 +503,9 @@ ChangeButtonColour('🚨 Initiate Endless Mode? 🚨', 'white', 'green')
                     )
             st.image("examples/ex4.png")
               
-OutTable = st.dataframe(state.outdf,
-                        column_config={"MCS": st.column_config.ImageColumn()},
-                        hide_index=True)
+with col2:
+    OutTable = st.dataframe(state.outdf,
+                            column_config={"MCS": st.column_config.ImageColumn()},
+                            hide_index=True)
 
 state.FirstEndless = False
