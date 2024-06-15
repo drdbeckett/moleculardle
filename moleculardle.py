@@ -28,7 +28,6 @@ rdDepictor.SetPreferCoordGen(True)
 
 
 state = st.session_state
-st.set_page_config(layout='wide')
 controller = CookieController()
 
 # TODO: Change the colors automatically, maybe dark and purple?
