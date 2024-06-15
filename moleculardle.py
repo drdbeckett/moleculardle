@@ -406,9 +406,9 @@ if not state.LockOut:
     # if st.button(":green-background[♾️Endless Mode♾️]", type="secondary"):
     #if st.button("🌀Endless Mode🌀", type="secondary"):
     #if st.button("🏓Endless Mode🏓", type="secondary"):
-    if st.button("🚨 Initiate Endless Mode? 🚨", type="secondary"):
-        clean_slate()
-        st.rerun()
+        if st.button("🚨 Initiate Endless Mode? 🚨", type="secondary"):
+            clean_slate()
+            st.rerun()
 
 #ChangeButtonColour('🌀Endless Mode🌀', 'white', 'green')
 ChangeButtonColour('🚨 Initiate Endless Mode? 🚨', 'white', 'green')
