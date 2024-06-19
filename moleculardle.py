@@ -153,7 +153,6 @@ def view_mcs(targetm,guessm,hint):
 
 
     # We're doing 2 MCS calls, one loose then one strict
-    # TODO: Make loose looser, make aromaticity checker
     loosemcs = rdFMCS.FindMCS([targetm,guessm], bondCompare=rdFMCS.BondCompare.CompareAny)
     loosemcs_mol = Chem.MolFromSmarts(loosemcs.smartsString)
     loose_gmatch = guessm.GetSubstructMatch(loosemcs_mol)
@@ -162,7 +161,6 @@ def view_mcs(targetm,guessm,hint):
     tight_gmatch = guessm.GetSubstructMatch(tightmcs_mol)
     tight_tmatch = targetm.GetSubstructMatch(tightmcs_mol)
 
-    # should add a bit here that gets aromaticity state for matching atoms in target
     athighlights = defaultdict(list)
     arads = {}
     # These are for the hint
@@ -176,11 +174,15 @@ def view_mcs(targetm,guessm,hint):
         tid = tight_tmatch[sid]
         arads[gid] = 0.2
         # check if the guess aromaticity matches target
-        if guessm.GetAtomWithIdx(gid).GetIsAromatic() == targetm.GetAtomWithIdx(tid).GetIsAromatic():
+        if guessm.GetAtomWithIdx(gid).IsInRing == True:
+            if guessm.GetAtomWithIdx(gid).GetIsAromatic() == targetm.GetAtomWithIdx(tid).GetIsAromatic():
+                athighlights[gid].append(colors[0])
+                keepatoms.append(gid)
+            else:
+                athighlights[gid].append(colors[1])
+        else:
             athighlights[gid].append(colors[0])
             keepatoms.append(gid)
-        else:
-            athighlights[gid].append(colors[1])
 
     # Now check for anything from the loose substructure match
     for sid in range(len(loose_gmatch)):
@@ -201,11 +203,15 @@ def view_mcs(targetm,guessm,hint):
         gbid = (guessm.GetBondBetweenAtoms(gid1,gid2).GetIdx())
         tbid = (targetm.GetBondBetweenAtoms(tid1,tid2).GetIdx())
         # Check for aromaticity match
-        if guessm.GetBondWithIdx(gbid).GetIsAromatic() == targetm.GetBondWithIdx(tbid).GetIsAromatic():
+        if guessm.GetBondWithIdx(gbid).IsInRing == True:
+            if guessm.GetBondWithIdx(gbid).GetIsAromatic() == targetm.GetBondWithIdx(tbid).GetIsAromatic():
+                bndhighlights[gbid].append(colors[0])
+                #!keepbonds.append(gbid)
+            else:
+                bndhighlights[gbid].append(colors[1])
+        else:
             bndhighlights[gbid].append(colors[0])
             #!keepbonds.append(gbid)
-        else:
-            bndhighlights[gbid].append(colors[1])
      
     # Loose substructure match for bonds
     for bond in loosemcs_mol.GetBonds():
@@ -250,11 +256,13 @@ def view_mcs(targetm,guessm,hint):
         for badatom in badatoms:
             guessmw.RemoveAtom(badatom)
         guessmw.CommitBatchEdit()
-        Chem.SanitizeMol(guessmw)
-        guess = Chem.MolToSmiles(guessmw)
-        guessm = Chem.MolFromSmiles(guess)
-        state.guesses.append(guess)
-        state.guessnum = state.guessnum+1
+        if Chem.SanitizeMol(guessmw,catchErrors=True) == 0:
+            guess = Chem.MolToSmiles(guessmw)
+            guessm = Chem.MolFromSmiles(guess)
+            state.guesses.append(guess)
+            state.guessnum = state.guessnum+1
+        else:
+            return
 
         # Now we redo the MCS to get alignment with target again
         tightmcs = rdFMCS.FindMCS([targetm,guessm], matchValences=True, ringMatchesRingOnly=True)
@@ -481,15 +489,20 @@ if not state.LockOut:
         if guess:
             if st.button("🤫  Need a hint? 🤫", type="secondary"):
                 hint = view_mcs(targetm,guessm,True)
-                tan = 9999
-                outrow = pd.DataFrame({"Guess Number": [int(state.guessnum)],
-                                       "Tanimoto": [tan],
-                                       "MCS": hint})
-                state.outdf = pd.concat([state.outdf,outrow])
-                st.markdown('''This is the strictest maximum common substructure of your last guess
-                               with atoms that need to be grown from highlighted with green circles.
-                               This image will populate into the table and costs you 1 guess. Good luck!''')
-                st.image(hint)
+                if hint:
+                    tan = 9999
+                    outrow = pd.DataFrame({"Guess Number": [int(state.guessnum)],
+                                           "Tanimoto": [tan],
+                                           "MCS": hint})
+                    state.outdf = pd.concat([state.outdf,outrow])
+                    st.markdown('''This is the strictest maximum common substructure of your last guess
+                                   with atoms that need to be grown from highlighted with green circles.
+                                   This image will populate into the table and costs you 1 guess. Good luck!''')
+                    st.image(hint)
+                else:
+                    st.markdown('''Ran into an issue decomposing the molecule! No hint for you this time -
+                                   odds are your guess has an aromatic ring that is broken when the blue
+                                   substructure is considered. Fix this and try again, this did not cost you a guess.''')
 
 # The Endless button
     with col2:
