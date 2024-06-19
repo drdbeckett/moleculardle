@@ -482,8 +482,6 @@ if not state.LockOut:
                 st.rerun()
             else:
                 st.write("Oh come on you haven't even tried. Draw something and click Apply!")
-
-        state.EndlessMW = st.slider("Endless Mode Molecular Weight Cutoff:", 100, 1000, int(state.EndlessMW))
         
         # The Hint button
         if guess:
@@ -504,8 +502,9 @@ if not state.LockOut:
                                    odds are your guess has an aromatic ring that is broken when the blue
                                    substructure is considered. Fix this and try again, this did not cost you a guess.''')
 
-# The Endless button
-    with col2:
+# The Endless molecular weight slider and button
+        state.EndlessMW = st.slider("Endless Mode Molecular Weight Cutoff:", 100, 1000, int(state.EndlessMW))
+
         if st.button("🚨 Initiate Endless Mode? 🚨", type="secondary"):
             clean_slate()
             st.rerun()
