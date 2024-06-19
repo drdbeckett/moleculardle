@@ -57,6 +57,8 @@ if 'today' not in state:
     GT_cookie = controller.get('GameToday')
     #print("Final test: ", GT_cookie)
 
+if 'hintguess' not in state:
+    state.hintguess=""
 if 'guessnum' not in state:
     state.guessnum = 0
 
@@ -144,10 +146,10 @@ if 'targetline' not in state:
 ####################################################################
 
 ####### Function definitions ######################################
-# For visualizing the MCS
-def view_mcs(targetm,guessm):
+# For visualizing the MCS and for getting the MCS hint
+def view_mcs(targetm,guessm,hint):
     #rgba_color = (0.0, 0.0, 1.0, 0.2) # transparent blue
-    colors = [(0.0, 0.0, 1.0, 0.2), (1.0, 0.0, 0.0, 0.2)] # transparent blue and red
+    colors = [(0.0, 0.0, 1.0, 0.2), (1.0, 0.0, 0.0, 0.2), (0.0, 1.0, 0.0, 0.3)] # transparent blue and red
 
 
     # We're doing 2 MCS calls, one loose then one strict
@@ -163,6 +165,9 @@ def view_mcs(targetm,guessm):
     # should add a bit here that gets aromaticity state for matching atoms in target
     athighlights = defaultdict(list)
     arads = {}
+    # These are for the hint
+    keepatoms=[]
+    #!keepbonds=[]
 
     # index of the match list is substructure index, entries are the atom indices
     # in either guessm or tightm, loop over the tight substructure match first
@@ -173,6 +178,7 @@ def view_mcs(targetm,guessm):
         # check if the guess aromaticity matches target
         if guessm.GetAtomWithIdx(gid).GetIsAromatic() == targetm.GetAtomWithIdx(tid).GetIsAromatic():
             athighlights[gid].append(colors[0])
+            keepatoms.append(gid)
         else:
             athighlights[gid].append(colors[1])
 
@@ -197,6 +203,7 @@ def view_mcs(targetm,guessm):
         # Check for aromaticity match
         if guessm.GetBondWithIdx(gbid).GetIsAromatic() == targetm.GetBondWithIdx(tbid).GetIsAromatic():
             bndhighlights[gbid].append(colors[0])
+            #!keepbonds.append(gbid)
         else:
             bndhighlights[gbid].append(colors[1])
      
@@ -207,11 +214,72 @@ def view_mcs(targetm,guessm):
         gbid = (guessm.GetBondBetweenAtoms(gid1,gid2).GetIdx())
         if gbid not in bndhighlights:
             bndhighlights[gbid].append(colors[1])
+    
+    #### Hint Gen! ####
+    # Use the tight substructure search to generate the hint structure
+    # Remove all atoms and bonds not highlighted blue
+    # NOTE: originally had bond elimination in here but seems unnecessary, leaving for now with #! in front
+    if hint:
+        athighlights = defaultdict(list)
+        bndhighlights = defaultdict(list)
+        arads = {}
+        badatoms=[]
+        #!badbegin=[]
+        #!badend=[]
+        # Make list of atoms to remove
+        for gatom in guessm.GetAtoms():
+            gid = gatom.GetIdx()
+            if gid not in keepatoms:
+                badatoms.append(gid)        
+        # Make lists of atoms in bonds to remove (between atoms that are kept)
+        #!for gbond in guessm.GetBonds():
+        #!    gbid = gbond.GetIdx()
+        #!    if gbid not in keepbonds:
+        #!        if gbond.GetBeginAtomIdx() in keepatoms:
+        #!            if gbond.GetEndAtomIdx() in keepatoms:
+        #!                badbegin.append(gbond.GetBeginAtomIdx())
+        #!                badend.append(gbond.GetEndAtomIdx())
+
+        badatoms.sort(reverse=True)
+
+        # make editable version of guessm and remove bad atoms/bonds
+        guessmw = Chem.RWMol(guessm)
+        guessmw.BeginBatchEdit()
+        #!for b1, b2 in zip(badbegin, badend):
+        #!    guessmw.RemoveBond(b1,b2)
+        for badatom in badatoms:
+            guessmw.RemoveAtom(badatom)
+        guessmw.CommitBatchEdit()
+        Chem.SanitizeMol(guessmw)
+        guess = Chem.MolToSmiles(guessmw)
+        guessm = Chem.MolFromSmiles(guess)
+        state.guesses.append(guess)
+        state.guessnum = state.guessnum+1
+
+        # Now we redo the MCS to get alignment with target again
+        tightmcs = rdFMCS.FindMCS([targetm,guessm], matchValences=True, ringMatchesRingOnly=True)
+        tightmcs_mol = Chem.MolFromSmarts(tightmcs.smartsString)
+        tight_gmatch = guessm.GetSubstructMatch(tightmcs_mol)
+        tight_tmatch = targetm.GetSubstructMatch(tightmcs_mol)
+        # index of the match list is substructure index, entries are the atom indices
+        # in either guessm or tightm, loop over the tight substructure match first
+        for sid in range(len(tight_gmatch)):
+            gid = tight_gmatch[sid]
+            tid = tight_tmatch[sid]
+            # if the number of bonds is less for an atom in guess then we highlight it
+            if len(guessm.GetAtomWithIdx(gid).GetBonds()) < len(targetm.GetAtomWithIdx(tid).GetBonds()):
+                athighlights[gid].append(colors[2])
+                arads[gid] = 0.2
      
     # the actual draw command
     #mcs_pil = Draw.MolToImage(guessm, size=(400, 400), highlightAtoms=dict(athighlights), highlightBonds=dict(bndhighlights), highlightRadii=arads)
     d2d = rdMolDraw2D.MolDraw2DCairo(400,400)
-    d2d.DrawMoleculeWithHighlights(guessm,"",dict(athighlights),dict(bndhighlights),arads,{})
+    if hint:
+        d2d.DrawMoleculeWithHighlights(guessm,"",dict(athighlights),dict(bndhighlights),arads,{})
+   #     d2d.DrawMoleculeWithHighlights(guessm,"",{})
+    else:
+        d2d.DrawMoleculeWithHighlights(guessm,"",dict(athighlights),dict(bndhighlights),arads,{})
+    #d2d.DrawMoleculeWithHighlights(guessm,"",dict(athighlights),dict(bndhighlights),arads,{})
     d2d.FinishDrawing()
     mcs_pil = BytesIO(d2d.GetDrawingText())
 
@@ -256,6 +324,8 @@ def emojify():
             emojistring = emojistring+"🟨"
         elif float(i) <= 1.0:
             emojistring = emojistring+"🟩"
+        elif int(i) == 9999:
+            emojistring = emojistring+"🤫"
     if state.Won:
         emojistring = emojistring+"🧪"
     if state.Lost:
@@ -289,6 +359,9 @@ def ChangeButtonColour(widget_label, font_color, background_color='transparent')
         </script>
         """
     components.html(f"{htmlstr}", height=0, width=0)
+
+## Exiting Function Town ##############################
+#######################################################
 
 #######################################################
 # Target definition and initialization
@@ -335,7 +408,7 @@ if state.LockOut:
         link='https://go.drugbank.com/drugs/'+state.targetline[0].strip('\"')
         st.write(link)
         st.write(state.targetline[9].strip('\"'))
-        st.image(view_mcs(state.FinalGuessm,targetm))
+        st.image(view_mcs(state.FinalGuessm,targetm,False))
         if not state.Endless:  
             st.write("Copy the emoji string to show off to your friends, colleagues, and enemies!")
             st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
@@ -348,7 +421,7 @@ if state.LockOut:
         link='https://go.drugbank.com/drugs/'+state.targetline[0].strip('\"')
         st.write(link)
         st.write(state.targetline[9].strip('\"'))
-        st.image(view_mcs(state.FinalGuessm,targetm))
+        st.image(view_mcs(state.FinalGuessm,targetm,False))
         if not state.Endless:  
             st.write("Copy the emoji string to demonstrate how hard you tried before tapping out!")
             st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
@@ -371,7 +444,6 @@ if not state.LockOut:
         st.write("Guess the drug (or drug-like compound)!")
         st.write("Target empirical formula:", targetformula)
         guess = st_ketcher()
-        ChangeButtonColour('ketcher', 'white', 'green')
 
 # get properties from the input guess
 if guess and not state.FirstEndless: 
@@ -404,17 +476,27 @@ if not state.LockOut:
                 st.write("Oh come on you haven't even tried. Draw something and click Apply!")
 
         state.EndlessMW = st.slider("Endless Mode Molecular Weight Cutoff:", 100, 1000, int(state.EndlessMW))
+        
+        # The Hint button
+        if guess:
+            if st.button("🤫  Need a hint? 🤫", type="secondary"):
+                hint = view_mcs(targetm,guessm,True)
+                tan = 9999
+                outrow = pd.DataFrame({"Guess Number": [int(state.guessnum)],
+                                       "Tanimoto": [tan],
+                                       "MCS": hint})
+                state.outdf = pd.concat([state.outdf,outrow])
+                st.markdown('''This is the strictest maximum common substructure of your last guess
+                               with atoms that need to be grown from highlighted with green circles.
+                               This image will populate into the table and costs you 1 guess. Good luck!''')
+                st.image(hint)
 
 # The Endless button
     with col2:
-        # if st.button(":green-background[♾️Endless Mode♾️]", type="secondary"):
-        #if st.button("🌀Endless Mode🌀", type="secondary"):
-        #if st.button("🏓Endless Mode🏓", type="secondary"):
         if st.button("🚨 Initiate Endless Mode? 🚨", type="secondary"):
             clean_slate()
             st.rerun()
 
-    #ChangeButtonColour('🌀Endless Mode🌀', 'white', 'green')
     ChangeButtonColour('🚨 Initiate Endless Mode? 🚨', 'white', 'green')
 
 # Similarity scoring
@@ -469,7 +551,7 @@ if not state.LockOut:
         # If there was a validguess then update the table
         if validguess:
             # highlight max common substructure
-            mcs_durl = view_mcs(targetm,guessm)
+            mcs_durl = view_mcs(targetm,guessm,False)
             st.image(mcs_durl)
             outrow = pd.DataFrame({"Guess Number": [int(state.guessnum)],
                                    "Tanimoto": [tan],
