@@ -340,6 +340,7 @@ def clean_slate():
     state.Endless = True
     state.NewEndless = True
     state.FirstEndless = True
+    state.guesses = []
     state.guessnum = 0
     state.outdf = pd.DataFrame({"Guess Number": [],
                                 "Tanimoto": [],
