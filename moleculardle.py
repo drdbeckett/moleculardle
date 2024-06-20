@@ -174,15 +174,11 @@ def view_mcs(targetm,guessm,hint):
         tid = tight_tmatch[sid]
         arads[gid] = 0.2
         # check if the guess aromaticity matches target
-        if guessm.GetAtomWithIdx(gid).IsInRing == True:
-            if guessm.GetAtomWithIdx(gid).GetIsAromatic() == targetm.GetAtomWithIdx(tid).GetIsAromatic():
-                athighlights[gid].append(colors[0])
-                keepatoms.append(gid)
-            else:
-                athighlights[gid].append(colors[1])
-        else:
+        if guessm.GetAtomWithIdx(gid).GetIsAromatic() == targetm.GetAtomWithIdx(tid).GetIsAromatic():
             athighlights[gid].append(colors[0])
             keepatoms.append(gid)
+        else:
+            athighlights[gid].append(colors[1])
 
     # Now check for anything from the loose substructure match
     for sid in range(len(loose_gmatch)):
@@ -203,16 +199,12 @@ def view_mcs(targetm,guessm,hint):
         gbid = (guessm.GetBondBetweenAtoms(gid1,gid2).GetIdx())
         tbid = (targetm.GetBondBetweenAtoms(tid1,tid2).GetIdx())
         # Check for aromaticity match
-        if guessm.GetBondWithIdx(gbid).IsInRing == True:
-            if guessm.GetBondWithIdx(gbid).GetIsAromatic() == targetm.GetBondWithIdx(tbid).GetIsAromatic():
-                bndhighlights[gbid].append(colors[0])
-                #!keepbonds.append(gbid)
-            else:
-                bndhighlights[gbid].append(colors[1])
-        else:
+        if guessm.GetBondWithIdx(gbid).GetIsAromatic() == targetm.GetBondWithIdx(tbid).GetIsAromatic():
             bndhighlights[gbid].append(colors[0])
             #!keepbonds.append(gbid)
-     
+        else:
+            bndhighlights[gbid].append(colors[1])
+
     # Loose substructure match for bonds
     for bond in loosemcs_mol.GetBonds():
         gid1 = loose_gmatch[bond.GetBeginAtomIdx()]
