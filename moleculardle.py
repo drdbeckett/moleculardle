@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from collections import defaultdict
 from io import BytesIO
 import pandas as pd
+import pyperclip
 import random
 import base64
 import time
@@ -174,6 +175,15 @@ def view_mcs(targetm,guessm,hint):
         tid = tight_tmatch[sid]
         arads[gid] = 0.2
         # check if the guess aromaticity matches target
+        #if guessm.GetAtomWithIdx(gid).IsInRing == True:
+        #    if guessm.GetAtomWithIdx(gid).GetIsAromatic() == targetm.GetAtomWithIdx(tid).GetIsAromatic():
+        #        athighlights[gid].append(colors[0])
+        #        keepatoms.append(gid)
+        #    else:
+        #        athighlights[gid].append(colors[1])
+        #else:
+        #    athighlights[gid].append(colors[0])
+        #    keepatoms.append(gid)
         if guessm.GetAtomWithIdx(gid).GetIsAromatic() == targetm.GetAtomWithIdx(tid).GetIsAromatic():
             athighlights[gid].append(colors[0])
             keepatoms.append(gid)
@@ -199,12 +209,21 @@ def view_mcs(targetm,guessm,hint):
         gbid = (guessm.GetBondBetweenAtoms(gid1,gid2).GetIdx())
         tbid = (targetm.GetBondBetweenAtoms(tid1,tid2).GetIdx())
         # Check for aromaticity match
+        #if guessm.GetBondWithIdx(gbid).IsInRing == True:
+        #    if guessm.GetBondWithIdx(gbid).GetIsAromatic() == targetm.GetBondWithIdx(tbid).GetIsAromatic():
+        #        bndhighlights[gbid].append(colors[0])
+        #        #!keepbonds.append(gbid)
+        #    else:
+        #        bndhighlights[gbid].append(colors[1])
+        #else:
+        #    bndhighlights[gbid].append(colors[0])
+        #    #!keepbonds.append(gbid)
         if guessm.GetBondWithIdx(gbid).GetIsAromatic() == targetm.GetBondWithIdx(tbid).GetIsAromatic():
             bndhighlights[gbid].append(colors[0])
             #!keepbonds.append(gbid)
         else:
             bndhighlights[gbid].append(colors[1])
-
+     
     # Loose substructure match for bonds
     for bond in loosemcs_mol.GetBonds():
         gid1 = loose_gmatch[bond.GetBeginAtomIdx()]
@@ -340,8 +359,8 @@ def clean_slate():
     state.Endless = True
     state.NewEndless = True
     state.FirstEndless = True
-    state.guesses = []
     state.guessnum = 0
+    state.guesses = True
     state.outdf = pd.DataFrame({"Guess Number": [],
                                 "Tanimoto": [],
                                 "MCS": []})
@@ -412,8 +431,13 @@ if state.LockOut:
         st.image(view_mcs(state.FinalGuessm,targetm,False))
         if not state.Endless:  
             st.write("Copy the emoji string to show off to your friends, colleagues, and enemies!")
-            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
-            st.write("I got it in ",str(state.guessnum),"! Think you can do better? moleculardle.streamlit.app")
+            emojistring = emojify()
+            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojistring)
+            outstring = "Moleculardle "+str(state.today.month)+"/"+str(state.today.day)+"/"+str(state.today.year)+": "\
+                    +emojistring+"\n I got it in "+str(state.guessnum)+\
+                    "! Think you can do better? http://moleculardle.streamlit.app"
+            if st.button("Copy to Clipboard", type="secondary"):
+                pyperclip.copy(outstring)
 
     if state.Lost:
         # TODO: Move the image up and try to make it larger
@@ -425,8 +449,13 @@ if state.LockOut:
         st.image(view_mcs(state.FinalGuessm,targetm,False))
         if not state.Endless:  
             st.write("Copy the emoji string to demonstrate how hard you tried before tapping out!")
-            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
-            st.write("I gave in after ",str(state.guessnum),"! Think you can do better? moleculardle.streamlit.app")
+            emojistring = emojify()
+            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojistring)
+            outstring = "Moleculardle "+str(state.today.month)+"/"+str(state.today.day)+"/"+str(state.today.year)+": "\
+                    +emojistring+"\n I gave in after "+str(state.guessnum)+\
+                    "! Think you can do better? http://moleculardle.streamlit.app"
+            if st.button("Copy to Clipboard", type="secondary"):
+                pyperclip.copy(outstring)
 
     # reset button that initiates endless mode
     # TODO: Make this and the other endless button primary buttons that are green
