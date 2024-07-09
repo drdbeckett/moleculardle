@@ -431,13 +431,8 @@ if state.LockOut:
         st.image(view_mcs(state.FinalGuessm,targetm,False))
         if not state.Endless:  
             st.write("Copy the emoji string to show off to your friends, colleagues, and enemies!")
-            emojistring = emojify()
-            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojistring)
-            outstring = "Moleculardle "+str(state.today.month)+"/"+str(state.today.day)+"/"+str(state.today.year)+": "\
-                    +emojistring+"\n I got it in "+str(state.guessnum)+\
-                    "! Think you can do better? http://moleculardle.streamlit.app"
-            if st.button("Copy to Clipboard", type="secondary"):
-                pyperclip.copy(outstring)
+            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
+            st.write("I got it in ",str(state.guessnum),"! Think you can do better? http://moleculardle.streamlit.app")
 
     if state.Lost:
         # TODO: Move the image up and try to make it larger
@@ -449,13 +444,8 @@ if state.LockOut:
         st.image(view_mcs(state.FinalGuessm,targetm,False))
         if not state.Endless:  
             st.write("Copy the emoji string to demonstrate how hard you tried before tapping out!")
-            emojistring = emojify()
-            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojistring)
-            outstring = "Moleculardle "+str(state.today.month)+"/"+str(state.today.day)+"/"+str(state.today.year)+": "\
-                    +emojistring+"\n I gave in after "+str(state.guessnum)+\
-                    "! Think you can do better? http://moleculardle.streamlit.app"
-            if st.button("Copy to Clipboard", type="secondary"):
-                pyperclip.copy(outstring)
+            st.write("Moleculardle ",str(state.today.month),"/",str(state.today.day),"/",str(state.today.year),": ", emojify())
+            st.write("I gave in after ",str(state.guessnum),"! Think you can do better? http://moleculardle.streamlit.app")
 
     # reset button that initiates endless mode
     # TODO: Make this and the other endless button primary buttons that are green
