@@ -360,7 +360,7 @@ def clean_slate():
     state.NewEndless = True
     state.FirstEndless = True
     state.guessnum = 0
-    state.guesses = True
+    state.guesses = []
     state.outdf = pd.DataFrame({"Guess Number": [],
                                 "Tanimoto": [],
                                 "MCS": []})
@@ -468,7 +468,6 @@ if not state.LockOut:
 # get properties from the input guess
 if guess and not state.FirstEndless: 
     if guess not in state.guesses:
-        # TODO: add bit that checks against molecular formula
         state.guesses.append(guess)
         state.guessnum = state.guessnum+1
         validguess = True
