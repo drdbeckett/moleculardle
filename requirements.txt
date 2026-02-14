@@ -1,3 +1,4 @@
+streamlit>1.5
 streamlit_ketcher
 streamlit_cookies_controller
 pandas
