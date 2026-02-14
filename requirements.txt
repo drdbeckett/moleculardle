@@ -4,3 +4,4 @@ pandas
 rdkit
 pyperclip
 altair<5
+pytz
